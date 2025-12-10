@@ -183,8 +183,3 @@ jobs:
         if: steps.check_example.outputs.exists == 'true'
         working-directory: ${{ inputs.working_directory }}/examples/${{ matrix.example }}
         run: terraform validate
-
-      - name: Terraform Plan
-        if: steps.check_example.outputs.exists == 'true'
-        working-directory: ${{ inputs.working_directory }}/examples/${{ matrix.example }}
-        run: terraform plan

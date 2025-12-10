@@ -33,6 +33,16 @@ on:
         required: false
         type: boolean
         default: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS Access Key ID for terraform plan'
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS Secret Access Key for terraform plan'
+        required: false
+      AWS_REGION:
+        description: 'AWS Region for terraform plan'
+        required: false
 
 permissions:
   contents: write
@@ -183,3 +193,13 @@ jobs:
         if: steps.check_example.outputs.exists == 'true'
         working-directory: ${{ inputs.working_directory }}/examples/${{ matrix.example }}
         run: terraform validate
+
+      - name: Terraform Plan
+        if: steps.check_example.outputs.exists == 'true'
+        working-directory: ${{ inputs.working_directory }}/examples/${{ matrix.example }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION || 'eu-west-2' }}
+        run: terraform plan
+        continue-on-error: true

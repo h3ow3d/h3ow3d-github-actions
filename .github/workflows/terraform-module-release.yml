@@ -1,0 +1,127 @@
+name: Reusable Terraform Module Release
+
+on:
+  workflow_call:
+    inputs:
+      terraform_version:
+        description: 'Terraform version to use'
+        required: false
+        type: string
+        default: '1.14.1'
+      enable_breaking_change_detection:
+        description: 'Enable automatic breaking change detection'
+        required: false
+        type: boolean
+        default: true
+      module_type:
+        description: 'Type of module (e.g., networking, ecs-service, cognito)'
+        required: false
+        type: string
+        default: 'module'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+          # Parse version
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+
+          # Check for breaking changes
+          BREAKING=false
+          if [[ "${{ inputs.enable_breaking_change_detection }}" == "true" ]]; then
+            if [[ "${{ github.event.head_commit.message }}" =~ BREAKING\ CHANGE || "${{ github.event.head_commit.message }}" =~ \! ]]; then
+              BREAKING=true
+            fi
+          fi
+
+          if [ "$BREAKING" = true ]; then
+            NEW_MAJOR=$((major + 1))
+            NEW_TAG="v${NEW_MAJOR}.0.0"
+            echo "version_type=major" >> $GITHUB_OUTPUT
+            echo "breaking=true" >> $GITHUB_OUTPUT
+          else
+            NEW_PATCH=$((patch + 1))
+            NEW_TAG="v${major}.${minor}.${NEW_PATCH}"
+            echo "version_type=patch" >> $GITHUB_OUTPUT
+            echo "breaking=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        if: contains(github.event.head_commit.message, '[release]')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.get_tag.outputs.new_tag }} -m "Release ${{ steps.get_tag.outputs.new_tag }}"
+          git push origin ${{ steps.get_tag.outputs.new_tag }}
+
+      - name: Generate release notes
+        if: contains(github.event.head_commit.message, '[release]')
+        id: release_notes
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          
+          # Extract commit title and body
+          TITLE=$(echo "$COMMIT_MSG" | head -n1)
+          BODY=$(echo "$COMMIT_MSG" | tail -n +2)
+          
+          # Build release notes
+          NOTES="## Changes\n\n"
+          NOTES+="$TITLE\n\n"
+          
+          if [ -n "$BODY" ]; then
+            NOTES+="$BODY\n\n"
+          fi
+          
+          NOTES+="---\n\n"
+          NOTES+="**Module Type:** ${{ inputs.module_type }}\n"
+          NOTES+="**Version Type:** ${{ steps.get_tag.outputs.version_type }}\n"
+          NOTES+="**Previous Version:** ${{ steps.get_tag.outputs.latest_tag }}\n"
+          
+          if [[ "${{ steps.get_tag.outputs.breaking }}" == "true" ]]; then
+            NOTES+="⚠️ **BREAKING CHANGE** - Review migration guide before upgrading\n"
+          fi
+          
+          NOTES+="\n## Usage\n\n"
+          NOTES+="\`\`\`hcl\n"
+          NOTES+="module \"${{ inputs.module_type }}\" {\n"
+          NOTES+="  source = \"git::https://github.com/${{ github.repository }}.git?ref=${{ steps.get_tag.outputs.new_tag }}\"\n\n"
+          NOTES+="  project_name = \"myproject\"\n"
+          NOTES+="  environment  = \"production\"\n"
+          NOTES+="  # ... additional module-specific variables\n"
+          NOTES+="}\n"
+          NOTES+="\`\`\`\n"
+          
+          # Save to file
+          echo -e "$NOTES" > /tmp/release_notes.md
+
+      - name: Create GitHub Release
+        if: contains(github.event.head_commit.message, '[release]')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_tag.outputs.new_tag }}
+          name: Release ${{ steps.get_tag.outputs.new_tag }}
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: ${{ steps.get_tag.outputs.breaking == 'true' }}

@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/h3ow3d/h3ow3d-github-actions/compare/v1.0.0...v1.0.1) (2025-12-22)
+
+
+### Bug Fixes
+
+* **workflows:** pass GITHUB_TOKEN as input parameter to tfsec-action to prevent API rate limiting ([824ffb2](https://github.com/h3ow3d/h3ow3d-github-actions/commit/824ffb265cef9782f1e1fe9a042d8e49f7af68b5))
+
 ## 1.0.0 (2025-12-22)
 
 

@@ -91,10 +91,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache TFLint
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-${{ hashFiles('**/.tflint.hcl') }}
+
       - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        continue-on-error: true
+        id: setup-tflint
+        with:
+          tflint_version: ${{ inputs.tflint_version }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retry Setup TFLint
+        if: steps.setup-tflint.outcome == 'failure'
         uses: terraform-linters/setup-tflint@v4
         with:
           tflint_version: ${{ inputs.tflint_version }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Init TFLint
         working-directory: ${{ inputs.working_directory }}

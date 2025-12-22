@@ -115,11 +115,10 @@ jobs:
 
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           working_directory: ${{ inputs.working_directory }}
           soft_fail: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   checkov:
     name: Checkov Security Scan

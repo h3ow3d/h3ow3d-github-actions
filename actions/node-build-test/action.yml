@@ -1,0 +1,83 @@
+name: 'Node.js Build and Test'
+description: 'Setup Node.js, install dependencies, run tests, and build'
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  working-directory:
+    description: 'Working directory for Node.js project'
+    required: false
+    default: '.'
+  install-command:
+    description: 'Command to install dependencies'
+    required: false
+    default: 'npm ci'
+  test-command:
+    description: 'Command to run tests (empty to skip)'
+    required: false
+    default: ''
+  type-check-command:
+    description: 'Command to run type checking (empty to skip)'
+    required: false
+    default: ''
+  build-command:
+    description: 'Command to build the application'
+    required: false
+    default: 'npm run build'
+  upload-artifacts:
+    description: 'Whether to upload build artifacts'
+    required: false
+    default: 'false'
+  artifact-name:
+    description: 'Name for the build artifacts'
+    required: false
+    default: 'dist'
+  artifact-path:
+    description: 'Path to the build artifacts'
+    required: false
+    default: 'dist/'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+    
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.install-command }}
+    
+    - name: Run type checking
+      if: inputs.type-check-command != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.type-check-command }}
+    
+    - name: Run tests
+      if: inputs.test-command != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.test-command }}
+    
+    - name: Build application
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.build-command }}
+    
+    - name: Upload build artifacts
+      if: inputs.upload-artifacts == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
+        retention-days: 7

@@ -1,6 +1,6 @@
 # h3ow3d GitHub Actions
 
-Reusable GitHub Actions workflows for h3ow3d infrastructure repositories.
+Reusable GitHub Actions workflows and composite actions for h3ow3d infrastructure repositories.
 
 ## Available Workflows
 
@@ -61,13 +61,107 @@ jobs:
 - Breaking changes detected with `!` or `BREAKING CHANGE` in commit message
 - Automatic semantic versioning (major for breaking, patch for regular)
 
+## Available Composite Actions
+
+### Node.js Build and Test
+**Location:** `actions/node-build-test/action.yml`
+
+Composite action for Node.js projects: setup, install, test, type-check, and build.
+
+**Usage:**
+```yaml
+- name: Build and test
+  uses: h3ow3d/h3ow3d-github-actions/actions/node-build-test@main
+  with:
+    node-version: '20'
+    working-directory: './apps/api'
+    type-check-command: 'npm run type-check'
+    build-command: 'npm run build'
+    upload-artifacts: 'true'
+```
+
+**Inputs:**
+- `node-version` (default: `20`) - Node.js version
+- `working-directory` (default: `.`) - Project directory
+- `install-command` (default: `npm ci`) - Install command
+- `test-command` (default: `''`) - Test command (empty to skip)
+- `type-check-command` (default: `''`) - Type check command (empty to skip)
+- `build-command` (default: `npm run build`) - Build command
+- `upload-artifacts` (default: `false`) - Upload build artifacts
+- `artifact-name` (default: `dist`) - Artifact name
+- `artifact-path` (default: `dist/`) - Artifact path
+
+### Terraform Deploy
+**Location:** `actions/terraform-deploy/action.yml`
+
+Composite action to initialize, plan, and apply Terraform configurations.
+
+**Usage:**
+```yaml
+- name: Deploy with Terraform
+  uses: h3ow3d/h3ow3d-github-actions/actions/terraform-deploy@main
+  with:
+    terraform-version: '1.5.0'
+    working-directory: 'infra/terraform'
+    auto-approve: 'true'
+```
+
+**Inputs:**
+- `terraform-version` (default: `1.5.0`) - Terraform version
+- `working-directory` (default: `infra/terraform`) - Terraform directory
+- `terraform-wrapper` (default: `true`) - Enable Terraform wrapper
+- `format-check` (default: `true`) - Run fmt check
+- `auto-approve` (default: `true`) - Auto-approve apply
+- `environment` (default: `dev`) - Environment name
+
+**Outputs:**
+- `plan-exitcode` - Terraform plan exit code
+
+### AWS Configure
+**Location:** `actions/aws-configure/action.yml`
+
+Configure AWS credentials using OIDC or static keys.
+
+**Usage (OIDC):**
+```yaml
+- name: Configure AWS
+  uses: h3ow3d/h3ow3d-github-actions/actions/aws-configure@main
+  with:
+    aws-region: 'us-east-1'
+    auth-method: 'oidc'
+    role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+```
+
+**Usage (Static Keys):**
+```yaml
+- name: Configure AWS
+  uses: h3ow3d/h3ow3d-github-actions/actions/aws-configure@main
+  with:
+    aws-region: 'eu-west-2'
+    auth-method: 'static'
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+**Inputs:**
+- `aws-region` (required) - AWS region
+- `auth-method` (default: `oidc`) - Authentication method: `oidc` or `static`
+- `role-to-assume` - IAM role ARN (for OIDC)
+- `role-session-name` (default: `GitHubActions`) - Role session name
+- `aws-access-key-id` - AWS access key ID (for static)
+- `aws-secret-access-key` - AWS secret access key (for static)
+
 ## Workflow Structure
 
 ```
 .github/
-└── workflows/
-    ├── terraform-module-ci.yml      # CI pipeline for modules
-    └── terraform-module-release.yml # Release automation
+├── workflows/
+│   ├── terraform-module-ci.yml      # CI pipeline for modules
+│   └── terraform-module-release.yml # Release automation
+└── actions/
+    ├── node-build-test/             # Node.js build and test
+    ├── terraform-deploy/            # Terraform deployment
+    └── aws-configure/               # AWS credentials setup
 ```
 
 ## Example: Complete Module Repository Setup

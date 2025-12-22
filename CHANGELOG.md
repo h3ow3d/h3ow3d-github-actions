@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/h3ow3d/h3ow3d-github-actions/compare/v1.0.1...v1.0.2) (2025-12-22)
+
+
+### Bug Fixes
+
+* **workflows:** add retry logic and caching for TFLint setup to handle 503 errors ([9ed4f9a](https://github.com/h3ow3d/h3ow3d-github-actions/commit/9ed4f9a822426d4eb6f2e2af79d7a4de5644bcd3))
+
 ## [1.0.1](https://github.com/h3ow3d/h3ow3d-github-actions/compare/v1.0.0...v1.0.1) (2025-12-22)
 
 

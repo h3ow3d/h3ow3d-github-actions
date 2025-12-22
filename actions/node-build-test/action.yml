@@ -42,15 +42,27 @@ inputs:
     required: false
     default: 'dist/'
 
+  cache-dependency-path:
+    description: 'Optional path to lockfile for setup-node cache (e.g. apps/api/package-lock.json)'
+    required: false
+    default: ''
+
 runs:
   using: 'composite'
   steps:
-    - name: Setup Node.js
+    - name: Setup Node.js (with lockfile)
+      if: ${{ inputs.cache-dependency-path != '' }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
-        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    - name: Setup Node.js (no lockfile)
+      if: ${{ inputs.cache-dependency-path == '' }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
     
     - name: Install dependencies
       shell: bash

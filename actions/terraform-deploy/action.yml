@@ -26,7 +26,7 @@ inputs:
     required: false
     default: 'true'
   environment:
-    description: 'Environment name (dev, staging, prod)'
+    description: 'Environment name (dev or prod)'
     required: false
     default: 'dev'
 
@@ -43,6 +43,7 @@ runs:
       with:
         terraform_version: ${{ inputs.terraform-version }}
         terraform_wrapper: ${{ inputs.terraform-wrapper }}
+        environment: ${{ inputs.environment }}
     
     - name: Terraform Format Check
       if: inputs.format-check == 'true'
@@ -54,7 +55,8 @@ runs:
     - name: Terraform Init
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: terraform init
+      run: terraform init \
+          -backend-config="key=utils/actions-dashboard/${inputs.environment}/terraform.tfstate"
     
     - name: Terraform Validate
       shell: bash
@@ -65,7 +67,7 @@ runs:
       id: plan
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: terraform plan -out=tfplan
+      run: terraform plan -var-file=env/${{ inputs.environment }}.tfvars -out=tfplan
     
     - name: Terraform Apply
       if: inputs.auto-approve == 'true'

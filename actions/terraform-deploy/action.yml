@@ -55,7 +55,7 @@ runs:
     - name: Terraform Init
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: terraform init -var-file=env/${{ inputs.environment }}.tfvars \
+      run: terraform init \
           -backend-config="key=utils/actions-dashboard/${inputs.environment}/terraform.tfstate"
     
     - name: Terraform Validate
@@ -67,7 +67,7 @@ runs:
       id: plan
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: terraform plan -out=tfplan
+      run: terraform plan -var-file=env/${{ inputs.environment }}.tfvars -out=tfplan
     
     - name: Terraform Apply
       if: inputs.auto-approve == 'true'

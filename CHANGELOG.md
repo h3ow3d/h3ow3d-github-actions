@@ -1,3 +1,12 @@
+## [1.0.3](https://github.com/stackgobrr/common-github-actions/compare/v1.0.2...v1.0.3) (2026-01-25)
+
+
+### Bug Fixes
+
+* moving var file flag to plan cmd ([5871e44](https://github.com/stackgobrr/common-github-actions/commit/5871e4425ac661ae77060e7cce0cd327dc67a959))
+* s3 state file name ([be509de](https://github.com/stackgobrr/common-github-actions/commit/be509de533b59e68f0117ba18e4e9e5d6eb9bbc7))
+* tf var file flag ([b765f9c](https://github.com/stackgobrr/common-github-actions/commit/b765f9c2c8e2ce3332c6cd70d7cd785dae0c7265))
+
 ## [1.0.2](https://github.com/h3ow3d/h3ow3d-github-actions/compare/v1.0.1...v1.0.2) (2025-12-22)
 
 

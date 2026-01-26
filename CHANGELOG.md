@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/stackgobrr/common-github-actions/compare/v1.0.3...v1.0.4) (2026-01-26)
+
+
+### Bug Fixes
+
+* correct GitHub Actions input syntax and format terraform files ([64e154a](https://github.com/stackgobrr/common-github-actions/commit/64e154aded5c5706832b721b2732c5ba2e8b67a1))
+
 ## [1.0.3](https://github.com/stackgobrr/common-github-actions/compare/v1.0.2...v1.0.3) (2026-01-25)
 
 

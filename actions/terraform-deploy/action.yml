@@ -43,7 +43,6 @@ runs:
       with:
         terraform_version: ${{ inputs.terraform-version }}
         terraform_wrapper: ${{ inputs.terraform-wrapper }}
-        environment: ${{ inputs.environment }}
     
     - name: Terraform Format Check
       if: inputs.format-check == 'true'
@@ -55,8 +54,7 @@ runs:
     - name: Terraform Init
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: terraform init \
-          -backend-config="key=utils/actions-dashboard/${inputs.environment}/terraform.tfstate"
+      run: terraform init -backend-config="key=utils/actions-dashboard/${{ inputs.environment }}/terraform.tfstate"
     
     - name: Terraform Validate
       shell: bash
